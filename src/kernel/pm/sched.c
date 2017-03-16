@@ -98,7 +98,7 @@ PUBLIC void yield(void)
 		 * Process with higher
 		 * waiting time found.
 		 */
-		if (p->counter > next->counter)
+		if (2* p->counter - p->priority > 2* next->counter - next->priority)
 		{
 			next->counter++;
 			next = p;
@@ -111,6 +111,34 @@ PUBLIC void yield(void)
 		else
 			p->counter++;
 	}
+
+
+	// the process with the highest priority is in "next"
+	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+	{
+		/* Skip non-ready process. */
+		if (p->state != PROC_READY)
+			continue;
+
+		// if priority equals then we look at "nice"
+		if (2* p->counter - p->priority == 2* next->counter - next->priority && p->nice < next->nice)
+		{
+			next->counter++;
+			next = p;
+		}
+		// else if nice equals then we look at the counter
+		else if (2* p->counter - p->priority == 2* next->counter - next->priority && next->nice == p->nice)
+		{
+			if (p->counter > next->counter)
+			{
+				next->counter++;
+				next = p;
+			}
+		}
+		
+
+	}
+
 	
 	/* Switch to next process. */
 	next->priority = PRIO_USER;
@@ -118,3 +146,61 @@ PUBLIC void yield(void)
 	next->counter = PROC_QUANTUM;
 	switch_to(next);
 }
+
+
+// PUBLIC void yield(void)
+// {
+// 	struct process *p;    /* Working process.     */
+// 	struct process *next; /* Next process to run. */
+
+// 	/* Re-schedule process for execution. */
+// 	if (curr_proc->state == PROC_RUNNING)
+// 		sched(curr_proc);
+
+// 	/* Remember this process. */
+// 	last_proc = curr_proc;
+
+// 	/* Check alarm. */
+// 	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+// 	{
+// 		/* Skip invalid processes. */
+// 		if (!IS_VALID(p))
+// 			continue;
+		
+// 		/* Alarm has expired. */
+// 		if ((p->alarm) && (p->alarm < ticks))
+// 			p->alarm = 0, sndsig(p, SIGALRM);
+// 	}
+
+// 	 Choose a process to run next. 
+// 	next = IDLE;
+// 	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+// 	{
+// 		/* Skip non-ready process. */
+// 		if (p->state != PROC_READY)
+// 			continue;
+		
+// 		/*
+// 		 * Process with higher
+// 		 * waiting time found.
+// 		 */
+// 		if (p->counter -p->priority - p->nice > next->counter- next->priority - next->nice)
+// 		{
+// 			next->counter++;
+// 			next = p;
+// 		}
+			
+// 		/*
+// 		 * Increment waiting
+// 		 * time of process.
+// 		 */
+// 		else
+// 			p->counter++;
+// 	}
+	
+// 	/* Switch to next process. */
+// 	next->priority = PRIO_USER;
+// 	next->state = PROC_RUNNING;
+// 	next->counter = PROC_QUANTUM;
+// 	switch_to(next);
+// }
