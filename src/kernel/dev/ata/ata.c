@@ -663,6 +663,26 @@ PRIVATE int ata_readblk(unsigned minor, buffer_t buf)
 	return (0);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PRIVATE int ata_readblk(unsigned minor, buffer_t buf)
+{
+	struct atadev *dev;
+	
+	/* Invalid minor device. */
+	if (minor >= 4)
+		return (-EINVAL);
+	
+	dev = &ata_devices[minor];
+	
+	/* Device not valid. */
+	if (!(dev->flags & ATADEV_VALID))
+		return (-EINVAL);
+	
+	ata_sched_buffered(minor, buf, REQ_BUF |         /*TODO*/      REQ_SYNC);
+	
+	return (0);
+}
+
 /*
  * Writes a block to a ATA device.
  */
