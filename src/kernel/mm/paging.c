@@ -290,41 +290,40 @@ PRIVATE struct
  * @returns Upon success, the number of the frame is returned. Upon failure, a
  *          negative number is returned instead.
  */
-PRIVATE int allocf(void)
-{
-	int i;      /* Loop index.  */
-	int oldest; /* Oldest page. */
+PRIVATE int allocf(void) {
+
+	static int i = 0;      /* Loop index.  */
+	//int oldest; /* Oldest page. */
+	//struct pte * pg =NULL;
+	struct pte * pg2;
 	
-	#define OLDEST(x, y) (frames[x].age < frames[y].age)
-	
-	/* Search for a free frame. */
-	oldest = -1;
-	for (i = 0; i < NR_FRAMES; i++)
-	{
-		/* Found it. */
-		if (frames[i].count == 0)
-			goto found;
-		
-		/* Local page replacement policy. */
-		if (frames[i].owner == curr_proc->pid)
-		{
-			/* Skip shared pages. */
-			if (frames[i].count > 1)
-				continue;
-			
-			/* Oldest page found. */
-			if ((oldest < 0) || (OLDEST(i, oldest)))
-				oldest = i;
+
+
+
+
+		for (; i < NR_FRAMES; i= (i+1)%NR_FRAMES) {
+
+			if (frames[i].count == 0 )
+				goto found;
+
+			if(frames[i].owner == curr_proc->pid) {
+				if (frames[i].count > 1)
+					continue;
+
+				pg2 = getpte(curr_proc, frames[i].addr);
+
+				if(pg2->accessed == 1)
+					pg2->accessed = 0;
+				else {
+					//kprintf("Swap on : %d", i);
+					if (swap_out(curr_proc, frames[i].addr))
+						return (-1);
+					goto found; 
+				}
+			}
 		}
-	}
-	
-	/* No frame left. */
-	if (oldest < 0)
-		return (-1);
-	
-	/* Swap page out. */
-	if (swap_out(curr_proc, frames[i = oldest].addr))
-		return (-1);
+
+
 	
 found:		
 
