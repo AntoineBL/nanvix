@@ -282,7 +282,8 @@ PRIVATE struct
 	unsigned age;   /**< Age.                 */
 	pid_t owner;    /**< Page owner.          */
 	addr_t addr;    /**< Address of the page. */
-} frames[NR_FRAMES] = {{0, 0, 0, 0},  };
+	int compte;		/* counter use for LRU approximation */
+} frames[NR_FRAMES] = {{0, 0, 0, 0, 0},  };
 
 /**
  * @brief Allocates a page frame.
@@ -290,45 +291,75 @@ PRIVATE struct
  * @returns Upon success, the number of the frame is returned. Upon failure, a
  *          negative number is returned instead.
  */
-PRIVATE int allocf(void)
-{
-	int i;      /* Loop index.  */
-	int oldest; /* Oldest page. */
+PRIVATE int allocf(void) {
+
+	int i = 0;      	/* Loop index.  */
+	struct pte * pg;
+	int lru; 			/* Counter */
+	int timeToIncr = 0;		/* Var use to execute the core of the function every X clocks */ 
 	
-	#define OLDEST(x, y) (frames[x].age < frames[y].age)
-	
-	/* Search for a free frame. */
-	oldest = -1;
-	for (i = 0; i < NR_FRAMES; i++)
-	{
-		/* Found it. */
-		if (frames[i].count == 0)
+	#define LRU(x, y) (frames[x].compte > frames[y].compte)
+	#define approxim 10
+
+	/* ticks = clock.  The modulo allows to do the approximation */
+	if (ticks%approxim == 0)
+		timeToIncr = 1;	
+
+
+
+
+	lru = -1;
+	for (i =0 ; i < NR_FRAMES; i++) {
+
+		if (frames[i].count == 0 )
 			goto found;
-		
-		/* Local page replacement policy. */
-		if (frames[i].owner == curr_proc->pid)
-		{
-			/* Skip shared pages. */
+
+		if(frames[i].owner == curr_proc->pid) {
+
 			if (frames[i].count > 1)
 				continue;
-			
-			/* Oldest page found. */
-			if ((oldest < 0) || (OLDEST(i, oldest)))
-				oldest = i;
+
+			/* ******************************************************** */
+			/* Core of the function */
+			if (timeToIncr) {			
+
+				pg = getpte(curr_proc, frames[i].addr);
+
+
+				if(pg->accessed == 1) {
+					pg->accessed = 0;
+					frames[i].compte = 0;
+				}
+				else {
+					
+					frames[i].compte++;
+				}
+			/* ********************************************************** */
+			}
+
+
+			if (lru < 0 || LRU(i, lru)) {
+				lru = i;
+			}
 		}
+
 	}
-	
-	/* No frame left. */
-	if (oldest < 0)
-		return (-1);
-	
-	/* Swap page out. */
-	if (swap_out(curr_proc, frames[i = oldest].addr))
-		return (-1);
+
+
+			if (lru < 0) { // frames[i].count > 1 was always true
+				return(-1);
+			}	
+
+			//kprintf("swap on : %d", lru);
+			if (swap_out(curr_proc, frames[i=lru].addr))
+					return (-1);
+			goto found; 
+
+
 	
 found:		
-
-	frames[i].age = ticks;
+	frames[i].compte = 0;
+	//frames[i].age = ticks;
 	frames[i].count = 1;
 	
 	return (i);
