@@ -305,7 +305,6 @@ PUBLIC void brelse(struct buffer *buf)
  */
 PUBLIC struct buffer *bread(dev_t dev, block_t num)
 {
-	//
 	struct buffer *buf;
 	
 	buf = getblk(dev, num);

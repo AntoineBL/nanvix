@@ -678,7 +678,7 @@ PRIVATE int ata_readblk_a(unsigned minor, buffer_t buf)
 	if (!(dev->flags & ATADEV_VALID))
 		return (-EINVAL);
 	
-	ata_sched_buffered(minor, buf, REQ_BUF & ~REQ_SYNC);
+	ata_sched_buffered(minor, buf, REQ_BUF );  
 	
 	return (0);
 }
@@ -866,7 +866,8 @@ PRIVATE const struct bdev ata_ops = {
 	&ata_read,    /* read()     */
 	&ata_write,   /* write()    */
 	&ata_readblk, /* readblk()  */
-	&ata_writeblk /* writeblk() */
+	&ata_writeblk, /* writeblk() */
+	&ata_readblk_a  /* readblk_a() */
 };
 
 /*
