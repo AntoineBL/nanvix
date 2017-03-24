@@ -295,13 +295,13 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 	/* Read data. */
 	do
 	{
-		blk = block_map(i, off, 0);
+		blk = block_map(i, off, 0); // prend un numero logique, il trouve un numero de block physique. Il prend offset du fichier et il renvoie num physique associé a cette offset
 		
 		/* End of file reached. */
 		if (blk == BLOCK_NULL)
 			goto out;
 		
-		bbuf = bread(i->dev, blk);
+		bbuf = breada(i->dev, blk);
 			
 		blkoff = off % BLOCK_SIZE;
 		
