@@ -291,10 +291,11 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 	p = buf;
 	
 	inode_lock(i);
-	
+	kprintf("  Go into file_read : n= %d  off=  %d", n, off);
 	/* Read data. */
 	do
 	{
+		kprintf("      Go into file_read loop : n= %d  off=  %d", n, off);
 		blk = block_map(i, off, 0); // prend un numero logique, il trouve un numero de block physique. Il prend offset du fichier et il renvoie num physique associé a cette offset
 		
 		/* End of file reached. */
