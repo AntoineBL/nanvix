@@ -172,6 +172,7 @@ static int io_test(void)
 }
 
 
+
 static int io_test_a(void)
 {
 	int fd;            /* File descriptor.    */
@@ -179,30 +180,33 @@ static int io_test_a(void)
 	clock_t t0, t1;    /* Elapsed times.      */
 	char *buffer;      /* Buffer.             */
 	
-	printf("TEST 0");
+	//printf("TEST 0");
 	/* Allocate buffer. */
 	buffer = malloc(MEMORY_SIZE);
 	if (buffer == NULL)
 		exit(EXIT_FAILURE);
 	
 	/* Open hdd. */
-	printf("TEST 1");
+	//printf("TEST 1");
 	fd = open("/sbin/testAsync", O_RDONLY);
 	
 	if (fd < 0)
 		exit(EXIT_FAILURE);
-	printf("TEST 2");
+	//printf("TEST 2");
 
-	int i;
+	int i, j;
 	t0 = times(&timing);
 	
-	i= read(fd, buffer, BLOCK_SIZE);
-	while(i>0){
-		i = read(fd, buffer, BLOCK_SIZE);
+	
+	while( (read(fd, buffer, BLOCK_SIZE)) >0){
+
+		// utilisation du processus  : traitement pendant un temps fixe
+		i = 0;
+		for(j =0; j < 1000000; j++){i++;}
 	}
 	
 	
-	printf("TEST3");
+	//printf("TEST3");
 	t1 = times(&timing);
 	
 	/* House keeping. */
@@ -649,7 +653,7 @@ int main(int argc, char **argv)
 
 		if (!strcmp(argv[i], "ioa"))
 		{
-			printf("I/O Test\n");
+			printf("I/O Test Asynchronous\n");
 			printf("  Result:             [%s]\n", 
 				(!io_test_a()) ? "PASSED" : "FAILED");
 		}

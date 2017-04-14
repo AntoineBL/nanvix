@@ -296,13 +296,14 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 	do
 	{
 		//kprintf("      Go into file_read loop : n= %d  off=  %d", n, off);
-		kprintf("FILE_READ");
+		//kprintf("FILE_READ");
 		blk = block_map(i, off, 0); // prend un numero logique, il trouve un numero de block physique. Il prend offset du fichier et il renvoie num physique associé a cette offset
 		
 		/* End of file reached. */
 		if (blk == BLOCK_NULL)
 			goto out;
-		
+
+		//kprintf("Lecture synchrone du bloc");
 		bbuf = bread(i->dev, blk);
 			
 		blkoff = off % BLOCK_SIZE;
@@ -327,7 +328,7 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 		p += chunk;
 	} while (n > 0);
 
-out:
+out:	
 	inode_touch(i);
 	inode_unlock(i);
 	return ((ssize_t)(p - (char *)buf));
@@ -338,8 +339,9 @@ PUBLIC ssize_t file_read_a(struct inode *i, void *buf, size_t n, off_t off)
 	char *p;             /* Writing pointer.      */
 	size_t blkoff;       /* Block offset.         */
 	size_t chunk;        /* Data chunk size.      */
-	block_t blk;         /* Working block number. */
+	block_t blk, blk2;         /* Working block number. */
 	struct buffer *bbuf; /* Working block buffer. */
+	struct buffer *bbuf2;
 		
 	p = buf;
 	
@@ -349,17 +351,25 @@ PUBLIC ssize_t file_read_a(struct inode *i, void *buf, size_t n, off_t off)
 	do
 	{
 		//kprintf("      Go into file_read loop : n= %d  off=  %d", n, off);
-		kprintf("FILE_READ_A");
+		//kprintf("FILE_READ_A");
 		blk = block_map(i, off, 0); // prend un numero logique, il trouve un numero de block physique. Il prend offset du fichier et il renvoie num physique associé a cette offset ---
+		blk2 = block_map(i, off + BLOCK_SIZE, 0);
 
 		/* End of file reached. */
 		if (blk == BLOCK_NULL)
 
 			goto out;
 		
+		//kprintf("Lecture synchrone du bloc");
 		bbuf = bread(i->dev, blk);
 
-
+		//prefetch next block
+		if(blk2 != BLOCK_NULL) {
+			//kprintf("Lecture asynchrone du bloc");
+			bbuf2 = breada(i->dev, blk2);
+			brelse(bbuf2);
+		}
+			
 			
 		blkoff = off % BLOCK_SIZE;
 			

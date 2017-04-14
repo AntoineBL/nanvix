@@ -310,8 +310,13 @@ PUBLIC struct buffer *bread(dev_t dev, block_t num)
 	buf = getblk(dev, num);
 	
 	/* Valid buffer? */
-	if (buf->flags & BUFFER_VALID)
+	if (buf->flags & BUFFER_VALID) {
+		//kprintf("Donnée en cache !");
+		//kprintf("");
 		return (buf);
+	}
+	//kprintf("Donnée pas en cache !");
+	//kprintf("");	
 
 	bdev_readblk(buf);
 	
@@ -330,8 +335,13 @@ PUBLIC struct buffer *breada(dev_t dev, block_t num)
 	buf = getblk(dev, num);
 	
 	/* Valid buffer? */
-	if (buf->flags & BUFFER_VALID)
+	if (buf->flags & BUFFER_VALID) {
+		//kprintf("Donnée en cache !");
+		//kprintf("");
 		return (buf);
+	}
+	//kprintf("Donnée pas en cache !");
+	//kprintf("");
 
 	bdev_readblk_a(buf);
 	
