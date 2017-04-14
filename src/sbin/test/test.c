@@ -37,6 +37,8 @@
 /* Test flags. */
 static unsigned flags = VERBOSE | FULL;
 
+#define BLOCK_SIZE 128
+
 /*============================================================================*
  *                               swap_test                                    *
  *============================================================================*/
@@ -190,13 +192,15 @@ static int io_test_a(void)
 	if (fd < 0)
 		exit(EXIT_FAILURE);
 	printf("TEST 2");
+
+	int i;
 	t0 = times(&timing);
 	
-	/* Read hdd. */
-	if (read(fd, buffer, MEMORY_SIZE) != MEMORY_SIZE) {
-		printf("OMG");
-		exit(EXIT_FAILURE);
+	i= read(fd, buffer, BLOCK_SIZE);
+	while(i>0){
+		i = read(fd, buffer, BLOCK_SIZE);
 	}
+	
 	
 	printf("TEST3");
 	t1 = times(&timing);
