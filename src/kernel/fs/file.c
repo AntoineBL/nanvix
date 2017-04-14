@@ -291,18 +291,19 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 	p = buf;
 	
 	inode_lock(i);
-	kprintf("  Go into file_read : n= %d  off=  %d", n, off);
+	//kprintf("  Go into file_read : n= %d  off=  %d", n, off);
 	/* Read data. */
 	do
 	{
-		kprintf("      Go into file_read loop : n= %d  off=  %d", n, off);
+		//kprintf("      Go into file_read loop : n= %d  off=  %d", n, off);
+		kprintf("FILE_READ");
 		blk = block_map(i, off, 0); // prend un numero logique, il trouve un numero de block physique. Il prend offset du fichier et il renvoie num physique associé a cette offset
 		
 		/* End of file reached. */
 		if (blk == BLOCK_NULL)
 			goto out;
 		
-		bbuf = breada(i->dev, blk);
+		bbuf = bread(i->dev, blk);
 			
 		blkoff = off % BLOCK_SIZE;
 		
@@ -331,6 +332,64 @@ out:
 	inode_unlock(i);
 	return ((ssize_t)(p - (char *)buf));
 }
+
+PUBLIC ssize_t file_read_a(struct inode *i, void *buf, size_t n, off_t off)
+{
+	char *p;             /* Writing pointer.      */
+	size_t blkoff;       /* Block offset.         */
+	size_t chunk;        /* Data chunk size.      */
+	block_t blk;         /* Working block number. */
+	struct buffer *bbuf; /* Working block buffer. */
+		
+	p = buf;
+	
+	inode_lock(i);
+	//kprintf("  Go into file_read : n= %d  off=  %d", n, off);
+	/* Read data. */
+	do
+	{
+		//kprintf("      Go into file_read loop : n= %d  off=  %d", n, off);
+		kprintf("FILE_READ_A");
+		blk = block_map(i, off, 0); // prend un numero logique, il trouve un numero de block physique. Il prend offset du fichier et il renvoie num physique associé a cette offset ---
+
+		/* End of file reached. */
+		if (blk == BLOCK_NULL)
+
+			goto out;
+		
+		bbuf = bread(i->dev, blk);
+
+
+			
+		blkoff = off % BLOCK_SIZE;
+			
+		/* Calculate read chunk size. */
+		chunk = (n < BLOCK_SIZE - blkoff) ? n : BLOCK_SIZE - blkoff;
+		if ((off_t)chunk > i->size - off)
+		{
+			chunk = i->size - off;
+			if (chunk == 0)
+			{
+				brelse(bbuf);
+				goto out;
+			}
+		}
+		
+		kmemcpy(p, (char *)bbuf->data + blkoff, chunk);
+		brelse(bbuf);
+		
+		n -= chunk;
+		off += chunk;
+		p += chunk;
+	} while (n > 0);
+
+out:
+	inode_touch(i);
+	inode_unlock(i);
+	return ((ssize_t)(p - (char *)buf));
+}
+
+
 
 /*
  * Writes to a regular file.

@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright(C) 2011-2016 Pedro H. Penna <pedrohenriquepenna@gmail.com>
  * 
  * This file is part of Nanvix.
@@ -678,7 +678,7 @@ PRIVATE int ata_readblk_a(unsigned minor, buffer_t buf)
 	if (!(dev->flags & ATADEV_VALID))
 		return (-EINVAL);
 	
-	ata_sched_buffered(minor, buf, REQ_BUF );  
+	ata_sched_buffered(minor, buf, REQ_BUF );  // no more asynchronous	
 	
 	return (0);
 }
@@ -942,7 +942,7 @@ PRIVATE void ata_handler(int atadevid)
 		/* Release buffer. */
 		if (req->flags & REQ_BUF)
 		{
-			buffer_dirty(req->u.buffered.buf, 0);
+			buffer_dirty(req->u.buffered.buf, 0); // buffer pas dirty
 			brelse(req->u.buffered.buf);
 		}
 	}
@@ -958,6 +958,16 @@ PRIVATE void ata_handler(int atadevid)
 			buf[i] = word & 0xff;
 			buf[i + 1] = (word >> 8) & 0xff;
 		}
+
+		if (req->flags & REQ_BUF) {
+
+			if (!(req->flags & REQ_SYNC)) {
+				buffer_dirty(req->u.buffered.buf, 0); // buffer pas dirty
+				buffer_valid(req->u.buffered.buf, 1); // buffer valid
+				brelse(req->u.buffered.buf);
+			}
+		}
+
 	}
 	
 	/* Process next operation. */

@@ -72,6 +72,7 @@
 	EXTERN buffer_t breada(dev_t, block_t);
 	EXTERN void bwrite(buffer_t);
 	EXTERN void buffer_dirty(buffer_t, int);
+	EXTERN void buffer_valid(buffer_t, int);
 	EXTERN void *buffer_data(const_buffer_t);
 	EXTERN dev_t buffer_dev(const_buffer_t);
 	EXTERN block_t buffer_num(const_buffer_t);
@@ -245,6 +246,11 @@
 	 * Reads from a regular file.
 	 */
 	EXTERN ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off);
+
+	/*
+	 * Reads from a regular file. USE FOR 3RD ASSIGNEMENT : asynchronous
+	 */
+	EXTERN ssize_t file_read_a(struct inode *i, void *buf, size_t n, off_t off);
 	
 	/*
 	 * Writes to a regular file.

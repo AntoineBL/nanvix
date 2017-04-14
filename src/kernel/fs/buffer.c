@@ -333,11 +333,12 @@ PUBLIC struct buffer *breada(dev_t dev, block_t num)
 	if (buf->flags & BUFFER_VALID)
 		return (buf);
 
-	bdev_readblk(buf);
+	bdev_readblk_a(buf);
 	
 	/* Update buffer flags. */
-	buf->flags |= BUFFER_VALID;
-	buf->flags &= ~BUFFER_DIRTY;
+
+	// buf->flags |= BUFFER_VALID;
+	// buf->flags &= ~BUFFER_DIRTY;
 	
 	return (buf);
 }
@@ -427,6 +428,20 @@ PUBLIC inline void buffer_dirty(struct buffer *buf, int set)
 {
 	buf->flags = (set) ? buf->flags | BUFFER_DIRTY : buf->flags & ~BUFFER_DIRTY;
 }
+
+
+
+
+
+PUBLIC inline void buffer_valid(struct buffer *buf, int set)
+{
+	buf->flags = (set) ? buf->flags | BUFFER_VALID : buf->flags & ~BUFFER_VALID;
+}
+
+
+
+
+
 
 /**
  * @brief Returns a pointer to the data in a buffer.

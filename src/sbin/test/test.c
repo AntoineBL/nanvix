@@ -169,6 +169,49 @@ static int io_test(void)
 	return (0);
 }
 
+
+static int io_test_a(void)
+{
+	int fd;            /* File descriptor.    */
+	struct tms timing; /* Timing information. */
+	clock_t t0, t1;    /* Elapsed times.      */
+	char *buffer;      /* Buffer.             */
+	
+	printf("TEST 0");
+	/* Allocate buffer. */
+	buffer = malloc(MEMORY_SIZE);
+	if (buffer == NULL)
+		exit(EXIT_FAILURE);
+	
+	/* Open hdd. */
+	printf("TEST 1");
+	fd = open("/sbin/testAsync", O_RDONLY);
+	
+	if (fd < 0)
+		exit(EXIT_FAILURE);
+	printf("TEST 2");
+	t0 = times(&timing);
+	
+	/* Read hdd. */
+	if (read(fd, buffer, MEMORY_SIZE) != MEMORY_SIZE) {
+		printf("OMG");
+		exit(EXIT_FAILURE);
+	}
+	
+	printf("TEST3");
+	t1 = times(&timing);
+	
+	/* House keeping. */
+	free(buffer);
+	close(fd);
+	
+	/* Print timing statistics. */
+	if (flags & VERBOSE)
+		printf("  Elapsed: %d\n", t1 - t0);
+	
+	return (0);
+}
+
 /*============================================================================*
  *                                sched_test                                  *
  *============================================================================*/
@@ -576,6 +619,7 @@ static void usage(void)
 	printf("  ipc   Interprocess Communication Test\n");
 	printf("  swp   Swapping Test\n");
 	printf("  sched Scheduling Test\n");
+	printf("  ioa   I/O Test Async\n");
 	
 	exit(EXIT_SUCCESS);
 }
@@ -597,6 +641,13 @@ int main(int argc, char **argv)
 			printf("I/O Test\n");
 			printf("  Result:             [%s]\n", 
 				(!io_test()) ? "PASSED" : "FAILED");
+		}
+
+		if (!strcmp(argv[i], "ioa"))
+		{
+			printf("I/O Test\n");
+			printf("  Result:             [%s]\n", 
+				(!io_test_a()) ? "PASSED" : "FAILED");
 		}
 		
 		/* Swapping test. */

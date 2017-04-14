@@ -194,6 +194,6 @@
 	EXTERN void bdev_readblk(struct buffer *buf);
 
 
-	EXTERN void bdev_readblka(struct buffer *buf);
+	EXTERN void bdev_readblk_a(struct buffer *buf);
 	
 #endif /* DEV_H_ */
